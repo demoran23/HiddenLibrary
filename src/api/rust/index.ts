@@ -5,6 +5,4 @@ export const test = async (input: string) => {
   await invoke('test', { input });
 }
 
-export const readFile = async (path: string) => {
-  await invoke('read_file', { path });
-}
+export const readFile = (path: string) => invoke<string>('read_file', { path })

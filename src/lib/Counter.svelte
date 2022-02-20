@@ -1,21 +1,18 @@
 <script lang="ts">
   import { readFile } from '../api/rust';
 
-  let count: number = 0
-  const increment = () => {
-    count += 1
-  }
-  const readFileHandler = async (e: MouseEvent) => {
+  let imgBase64: string = '';
+  const readFileHandler = async () => {
     let elementById = document.getElementById("filePath") as HTMLInputElement;
-    await readFile(elementById.value)
+    imgBase64 = await readFile(elementById.value)
   }
 </script>
 <div>
-    <button on:click={increment}>
-        Clicks: {count}
-    </button>
-    <input id="filePath" />
+    <input id="filePath"/>
     <button on:click={readFileHandler}>Test</button>
+    {#if imgBase64}
+        <img src="data:image/png;base64, {imgBase64}"/>
+    {/if}
 </div>
 <style>
     button {
