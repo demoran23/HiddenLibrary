@@ -1,8 +1,6 @@
 <script lang="ts">
   import logo from './assets/svelte.png'
-  import Counter from './lib/Counter.svelte'
-  import { App, View, Page, Navbar, Toolbar, Link } from 'framework7-svelte';
-  import HiddenLibraryAppbar from './lib/HiddenLibraryAppbar.svelte';
+  import Counter from './components/Counter.svelte'
 
   const f7params = {
     // App Name
@@ -13,10 +11,9 @@
   };
 </script>
 
-<App >
-  <HiddenLibraryAppbar />
+<div >
   <img src={logo} alt="Svelte Logo" />
   <h1>Hello Typescript!</h1>
 
   <Counter />
-</App>
+</div>

@@ -11,13 +11,15 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@smui/checkbox": "^6.0.0-beta.14",
+    "@smui/form-field": "^6.0.0-beta.14",
+    "@smui/icon-button": "6.0.0-beta.14",
+    "@smui/top-app-bar": "6.0.0-beta.14",
     "@sveltejs/vite-plugin-svelte": "1.0.0-next.37",
     "@tauri-apps/api": "1.0.0-rc.1",
     "@tauri-apps/cli": "1.0.0-rc.5",
     "@tsconfig/svelte": "3.0.0",
-    "framework7": "6.3.16",
-    "framework7-icons": "5.0.5",
-    "framework7-svelte": "6.3.16",
+    "material-icons": "1.10.7",
     "pnpm": "6.31.0",
     "svelte": "3.46.4",
     "svelte-check": "2.4.5",
