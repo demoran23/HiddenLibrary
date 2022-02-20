@@ -1,17 +1,21 @@
 <script lang="ts">
-  import { test } from '../api/rust';
+  import { readFile } from '../api/rust';
 
   let count: number = 0
   const increment = () => {
     count += 1
   }
-  const invokeTest = () => test("hi there");
+  const readFileHandler = async (e: MouseEvent) => {
+    let elementById = document.getElementById("filePath") as HTMLInputElement;
+    await readFile(elementById.value)
+  }
 </script>
 <div>
     <button on:click={increment}>
         Clicks: {count}
     </button>
-    <button on:click={invokeTest}>Test</button>
+    <input id="filePath" />
+    <button on:click={readFileHandler}>Test</button>
 </div>
 <style>
     button {
