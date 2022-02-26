@@ -1,3 +1,6 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Serialize)]
 pub struct ZipInfo {
     pub path: String,
     pub name: String,
@@ -11,16 +14,6 @@ impl ZipInfo {
             name: String::new(),
             length: 0,
         }
-    }
-}
-
-impl Clone for ZipInfo {
-    fn clone(&self) -> Self {
-        todo!()
-    }
-
-    fn clone_from(&mut self, source: &Self) {
-        todo!()
     }
 }
 

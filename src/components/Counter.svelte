@@ -8,12 +8,13 @@
     let imgBase64: string = '';
     let count: number = 0;
     const readFileHandler = async () => {
-        let elementById = document.getElementById("file_path") as HTMLInputElement;
+        const elementById = document.getElementById("file_path") as HTMLInputElement;
         imgBase64 = await readFile(elementById.value)
     }
     const zipHandler = async () => {
-        let elementById = document.getElementById("file_path") as HTMLInputElement;
-        await setCurrentZip(elementById.value)
+        const elementById = document.getElementById("file_path") as HTMLInputElement;
+        const zipInfo = await setCurrentZip(elementById.value)
+        console.log(zipInfo);
     }
 
     const counterHandler = async () => {

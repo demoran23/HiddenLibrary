@@ -44,13 +44,12 @@ pub async fn counter<'a>(count_val: i32, counter: State<'a, Counter>) -> Result<
 pub async fn set_current_zip<'a>(
     path: String,
     current_zip: State<'a, MyZipInfo>,
-) -> Result<(), String> {
+) -> Result<ZipInfo, String> {
     let x = Arc::clone(&current_zip.inner().0);
-    let file_path = path.clone();
 
     let handle = tokio::spawn(async move {
         let mut zip_info = x.lock().await;
-        let mut file = tokio::fs::File::open(&file_path)
+        let mut file = tokio::fs::File::open(&path)
             .await
             .expect("Failed to get file");
         let zip = ZipFileReader::new(&mut file).await.expect("Failed to read");
@@ -71,7 +70,7 @@ pub async fn set_current_zip<'a>(
     let info = y.lock().await;
     println!("Current zip is {}", &info.path);
 
-    Ok(())
+    Ok(info.clone())
 }
 
 #[tauri::command]
