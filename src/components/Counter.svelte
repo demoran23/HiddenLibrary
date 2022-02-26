@@ -1,15 +1,32 @@
 <script lang="ts">
-  import { readFile } from '../api/rust';
+    import {
+        incrementCounter,
+        readFile,
+        setCurrentZip
+    } from '../api/rust';
 
-  let imgBase64: string = '';
-  const readFileHandler = async () => {
-    let elementById = document.getElementById("filePath") as HTMLInputElement;
-    imgBase64 = await readFile(elementById.value)
-  }
+    let imgBase64: string = '';
+    let count: number = 0;
+    const readFileHandler = async () => {
+        let elementById = document.getElementById("file_path") as HTMLInputElement;
+        imgBase64 = await readFile(elementById.value)
+    }
+    const zipHandler = async () => {
+        let elementById = document.getElementById("file_path") as HTMLInputElement;
+        await setCurrentZip(elementById.value)
+    }
+
+    const counterHandler = async () => {
+        console.log("clicked!")
+        count = await incrementCounter();
+    }
 </script>
 <div>
-    <input id="filePath"/>
-    <button on:click={readFileHandler}>Test</button>
+    <input id="file_path" value="H:\[Ayakase Chiyoko] 3 vs 1 Volleyball Match 2 Home Game (x3200) [FAKKU].zip"/>
+    <button on:click={readFileHandler}>Show image</button>
+    <button on:click={zipHandler}>Set Current Zip</button>
+    <span>{count}</span>
+    <button on:click={counterHandler}>Increment Counter</button>
     {#if imgBase64}
         <img src="data:image/png;base64, {imgBase64}"/>
     {/if}
