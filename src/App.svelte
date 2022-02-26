@@ -12,7 +12,7 @@
 </script>
 
 <div >
-  <img src={logo} alt="Svelte Logo" />
+<!--  <img src={logo} alt="Svelte Logo" />-->
   <h1>Hello Typescript!</h1>
 
   <Counter />

@@ -1,11 +1,17 @@
 use crate::zipinfo::ZipInfo;
 use async_zip::error::ZipError;
 use async_zip::read::seek::ZipFileReader;
+use async_zip::read::ZipEntry;
+use futures::future::join_all;
+use std::borrow::{Borrow, BorrowMut};
 use std::fs;
+use std::ops::Deref;
 use std::path::Path;
 use std::sync::Arc;
 use tauri::State;
+use tokio::fs::File;
 use tokio::sync::Mutex;
+use tokio::task::JoinHandle;
 
 // use tokio::fs::File;
 pub struct MyZipInfo(pub Arc<Mutex<ZipInfo>>);
@@ -18,18 +24,10 @@ pub fn read_file(path: &str) -> String {
     base64::encode(contents)
 }
 
-#[tauri::command]
-pub fn read_zip(path: &str) -> String {
-    println!("In file {}", path);
-
-    let contents = fs::read(path).expect("Something went wrong reading the file");
-    base64::encode(contents)
-}
-
 pub struct Counter(pub Mutex<i32>);
 
 #[tauri::command]
-pub async fn counter<'a>(count_val: i32, counter: State<'a, Counter>) -> Result<i32, String> {
+pub async fn counter(count_val: i32, counter: State<'_, Counter>) -> Result<i32, String> {
     // Lock the counter(Mutex) to get the current value
     let mut ct = counter.0.lock().await;
 
@@ -41,9 +39,9 @@ pub async fn counter<'a>(count_val: i32, counter: State<'a, Counter>) -> Result<
 
 // ref https://medium.com/@marm.nakamura/trying-to-the-tauri-gui-on-rust-4-state-management-on-the-rust-side-8899bda08936
 #[tauri::command]
-pub async fn set_current_zip<'a>(
+pub async fn set_current_zip(
     path: String,
-    current_zip: State<'a, MyZipInfo>,
+    current_zip: State<'_, MyZipInfo>,
 ) -> Result<ZipInfo, String> {
     let x = Arc::clone(&current_zip.inner().0);
 
@@ -52,14 +50,24 @@ pub async fn set_current_zip<'a>(
         let mut file = tokio::fs::File::open(&path)
             .await
             .expect("Failed to get file");
-        let zip = ZipFileReader::new(&mut file).await.expect("Failed to read");
-
+        let mut file_reader = Arc::new(
+            ZipFileReader::new(&mut file)
+                .await
+                .expect("Failed to read zip"),
+        );
         println!("Setting current zip to: {}, was {}", &path, &zip_info.path);
-
+        let enumerate = file_reader.entries().into_iter().enumerate();
+        let pages = enumerate
+            .map(|(i, z)| get_page(i, path.to_string()))
+            .collect::<Vec<_>>();
+        let pages = join_all(pages).await;
+        println!("Page count: {}", &pages.len());
+        println!("Page value: {}", &pages.first().expect("getting page"));
         let info = ZipInfo {
             path: path.to_string(),
             name: path.to_string(),
-            length: zip.entries().len(),
+            length: pages.len(),
+            pages,
         };
         *zip_info = info;
     });
@@ -73,10 +81,28 @@ pub async fn set_current_zip<'a>(
     Ok(info.clone())
 }
 
+async fn get_page(index: usize, path: String) -> String {
+    let mut file = tokio::fs::File::open(&path)
+        .await
+        .expect("Failed to get file");
+    let mut zip_file_reader = ZipFileReader::new(&mut file)
+        .await
+        .expect("Failed to read zip");
+    let entry_reader = zip_file_reader
+        .entry_reader(index)
+        .await
+        .expect("read entry");
+    let contents = entry_reader
+        .read_to_end_crc()
+        .await
+        .expect("Failed to read entry as string");
+    base64::encode(contents)
+}
+
 #[tauri::command]
-pub async fn get_image_from_current_zip<'a>(
+pub async fn get_image_from_current_zip(
     page: usize,
-    current_zip: State<'a, Mutex<ZipInfo>>,
+    current_zip: State<'_, Mutex<ZipInfo>>,
 ) -> Result<String, ZipError> {
     let current = current_zip.inner();
     let x = current.lock().await;

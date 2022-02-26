@@ -21,6 +21,7 @@ tauri = { version = "1.0.0-rc.3", features = ["api-all"] }
 base64 = "0.13.0"
 async_zip = "0.0.6"
 tokio = "1.17.0"
+futures = "0.3.21"
 
 [features]
 # by default Tauri runs in production mode

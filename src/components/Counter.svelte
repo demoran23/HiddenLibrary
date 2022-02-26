@@ -7,14 +7,19 @@
 
     let imgBase64: string = '';
     let count: number = 0;
+    let zipInfo : any = null;
     const readFileHandler = async () => {
         const elementById = document.getElementById("file_path") as HTMLInputElement;
         imgBase64 = await readFile(elementById.value)
     }
     const zipHandler = async () => {
-        const elementById = document.getElementById("file_path") as HTMLInputElement;
-        const zipInfo = await setCurrentZip(elementById.value)
-        console.log(zipInfo);
+        try {
+            const elementById = document.getElementById("file_path") as HTMLInputElement;
+            zipInfo = await setCurrentZip(elementById.value);
+            console.log('zipinfo', zipInfo);
+        } catch (e) {
+            console.error('error', e);
+        }
     }
 
     const counterHandler = async () => {
@@ -23,13 +28,16 @@
     }
 </script>
 <div>
-    <input id="file_path" value="H:\[Ayakase Chiyoko] 3 vs 1 Volleyball Match 2 Home Game (x3200) [FAKKU].zip"/>
+    <input id="file_path" value="H:\fakku\chapters\[Homunculus] Courting Étranger (COMIC Kairakuten 2017-02).zip"/>
     <button on:click={readFileHandler}>Show image</button>
     <button on:click={zipHandler}>Set Current Zip</button>
     <span>{count}</span>
     <button on:click={counterHandler}>Increment Counter</button>
     {#if imgBase64}
         <img src="data:image/png;base64, {imgBase64}"/>
+    {/if}
+    {#if zipInfo}
+        <img src="data:image/png;base64, {zipInfo.pages[0]}"/>
     {/if}
 </div>
 <style>
