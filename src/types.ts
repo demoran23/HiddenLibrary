@@ -4,6 +4,7 @@ export interface Page {
 }
 
 export interface Pages {
+    book: Book;
     [index: number]: Page
 }
 
@@ -17,12 +18,12 @@ export interface GetPageResponse {
     contents: string; // Base 64 encoded value for the image
 }
 
-export interface ZipInfo {
+export interface Book {
     length: number;
     path: string;
     name: string;
 }
 
 export interface Library {
-    [path: string]: ZipInfo;
+    [path: string]: Book;
 }

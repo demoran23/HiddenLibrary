@@ -2,10 +2,9 @@
     import {
         setCurrentZip
     } from '../api/tauri';
-    import {library, pages, currentZip} from "../store";
+    import {library, pages, currentBook} from "../store";
     import {emit, listen} from '@tauri-apps/api/event'
     import type {GetPageResponse, Page} from "../types";
-
 
     listen<GetPageResponse>('get-page-response', e => {
         const page: Page = {img: e.payload.contents, req: e.payload.request};
@@ -16,11 +15,11 @@
     $: currentPageIndex, onCurrentPageIndexChange()
 
     function onCurrentPageIndexChange() {
-        if (!$currentZip?.path)
+        if (!$currentBook?.path)
             return;
 
         if (!$pages[currentPageIndex])
-            emit('get-page-request', {page: currentPageIndex, path: $currentZip.path});
+            emit('get-page-request', {page: currentPageIndex, path: $currentBook.path});
 
         const el = document.getElementById("page_specifier") as HTMLInputElement;
         if (el)
@@ -40,10 +39,10 @@
             const elementById = document.getElementById("file_path") as HTMLInputElement;
             const path = elementById.value;
             if ($library && $library[path]) {
-                currentZip.set($library[path]);
+                currentBook.set($library[path]);
                 await emit('get-page-request', {page: 0, path: elementById.value});
-            } else if (path && $currentZip?.path !== path) {
-                currentZip.set(await setCurrentZip(path));
+            } else if (path && $currentBook?.path !== path) {
+                currentBook.set(await setCurrentZip(path));
                 currentPageIndex = 0;
                 await emit('get-page-request', {page: 0, path: elementById.value});
             } else {
@@ -59,7 +58,7 @@
         console.log(e);
         const target = e.target as HTMLInputElement;
         const value = target.valueAsNumber;
-        const upperBound = ($currentZip.length ?? 0) - 1;
+        const upperBound = ($currentBook.length ?? 0) - 1;
 
         if (value > upperBound) {
             e.preventDefault();
@@ -75,14 +74,14 @@
     }
 </script>
 <div>
-    <input id="file_path" value="H:\fakku\chapters\[Homunculus] Courting Étranger (COMIC Kairakuten 2017-02).zip"/>
+    <input id="file_path" value="{$currentBook.path}"/>
     <button on:click={zipHandler}>Open</button>
-    {#if $currentZip.path}
+    {#if $currentBook.path}
         <input id="page_specifier" type="number" on:change={onChangePageNumber}/>
         <button disabled="{currentPageIndex <= 0}" on:click={() => {currentPageIndex = currentPageIndex - 1;}}>
             Previous
         </button>
-        <button disabled="{currentPageIndex >= ($currentZip.length ?? 0) - 1}"
+        <button disabled="{currentPageIndex >= ($currentBook.length ?? 0) - 1}"
                 on:click={() => {currentPageIndex = currentPageIndex + 1;}}>Next
         </button>
         <span>{currentPageIndex}</span>
