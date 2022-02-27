@@ -48,7 +48,7 @@ export const initializeStoreFromLocalStorage = async () => {
                         pages.set({ book: value });
                     }
                 }
-                const wm = new WindowManager("Hidden Library");
+                const wm = new WindowManager("main");
                 const res = await wm.setTitle(value.name ?? "Hidden Library");
                 console.log('currentBook', { value, res})
             })

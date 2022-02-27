@@ -6,8 +6,7 @@
     import {emit, listen} from '@tauri-apps/api/event'
     import type {GetPageRequest, GetPageResponse, Page} from "../types";
     import {difference, isNumber, keys, range} from 'lodash-es';
-    import {slide} from 'svelte/transition';
-    import {quintOut} from 'svelte/easing';
+    import PageImage from "./PageImage.svelte";
 
     listen<GetPageResponse>('get-page-response', e => {
         const page: Page = {img: e.payload.contents, req: e.payload.request};
@@ -21,10 +20,10 @@
         if (!$currentBook?.path)
             return;
 
-        const pagePrefetchRadius = 3;
+        const pagePrefetchRadius = 1;
         const minIndex = Math.max(currentPageIndex - pagePrefetchRadius, 0);
-        const maxIndex = Math.min(currentPageIndex + pagePrefetchRadius, $currentBook.length);
-        const existingPages = keys($pages).map(Number).filter(isNumber);
+        const maxIndex = Math.min(currentPageIndex + pagePrefetchRadius, $currentBook.length - 1);
+        const existingPages = keys($pages).map(Number).filter(isFinite);
         const pageIndexesToRequest = difference<number>(range(minIndex, maxIndex), existingPages);
         console.log({minIndex, maxIndex, existingPages, pageIndexesToRequest});
         for (const index of pageIndexesToRequest) {
@@ -48,14 +47,14 @@
     const zipHandler = async () => {
         try {
             const elementById = document.getElementById("file_path") as HTMLInputElement;
-            const path = elementById.value;
+            const path = elementById.value?.trim();
             if ($library && $library[path]) {
                 currentBook.set($library[path]);
-                await emit('get-page-request', {page: 0, path: elementById.value});
+                await emit('get-page-request', {page: 0, path});
             } else if (path && $currentBook?.path !== path) {
                 currentBook.set(await setCurrentZip(path));
                 currentPageIndex = 0;
-                await emit('get-page-request', {page: 0, path: elementById.value});
+                await emit('get-page-request', {page: 0, path});
             } else {
                 throw Error("Something went wrong")
             }
@@ -97,13 +96,8 @@
         </button>
         <span>{currentPageIndex}</span>
     {/if}
-    {#if $pages[currentPageIndex]}
-        <div transition:slide="{{delay: 250, duration: 300, easing: quintOut }}"
-             style="display: flex; flex: 1; width: 100%;justify-content: stretch;flex-direction: row;">
-            <img on:click={nextPage} src="data:image/png;base64, {$pages[currentPageIndex].img}"/>
-        </div>
-    {/if}
-</div>
+    <PageImage contents={$pages[currentPageIndex]?.img} onClick={nextPage} />
+`</div>
 <style>
     button {
         font-family: inherit;
