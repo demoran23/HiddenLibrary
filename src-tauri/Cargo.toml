@@ -22,6 +22,8 @@ base64 = "0.13.0"
 async_zip = "0.0.6"
 tokio = "1.17.0"
 futures = "0.3.21"
+piz = "0.4.0"
+memmap = "0.7.0"
 
 [features]
 # by default Tauri runs in production mode

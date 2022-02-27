@@ -1,43 +1,98 @@
 <script lang="ts">
     import {
-        incrementCounter,
-        readFile,
         setCurrentZip
     } from '../api/rust';
+    import {library, pages, currentZip} from "../store";
+    import {emit, listen} from '@tauri-apps/api/event'
+    import type {GetPageResponse, Page} from "../types";
 
-    let imgBase64: string = '';
-    let count: number = 0;
-    let zipInfo : any = null;
-    const readFileHandler = async () => {
-        const elementById = document.getElementById("file_path") as HTMLInputElement;
-        imgBase64 = await readFile(elementById.value)
+    currentZip.subscribe(value => {
+        library.update(existing => ({...existing, [value.path]: value}));
+    });
+
+    listen<GetPageResponse>('get-page-response', e => {
+        const page: Page = {img: e.payload.contents, req: e.payload.request};
+        pages.update(value => ({...value, [page.req.page]: page}));
+    });
+
+    let currentPageIndex: number = 0;
+    $: currentPageIndex, onCurrentPageIndexChange()
+
+    function onCurrentPageIndexChange() {
+        if (!$currentZip?.path)
+            return;
+
+        if (!$pages[currentPageIndex])
+            emit('get-page-request', {page: currentPageIndex, path: $currentZip.path});
+
+        const el = document.getElementById("page_specifier") as HTMLInputElement;
+        el.value = String(currentPageIndex);
     }
+
+    const nextPage = () => {
+        const elementById = document.getElementById("file_path") as HTMLInputElement;
+        const nextPageIndex = currentPageIndex + 1;
+        if (!$pages[nextPageIndex])
+            emit('get-page-request', {page: nextPageIndex, path: elementById.value});
+        currentPageIndex = nextPageIndex;
+    }
+
     const zipHandler = async () => {
         try {
             const elementById = document.getElementById("file_path") as HTMLInputElement;
-            zipInfo = await setCurrentZip(elementById.value);
-            console.log('zipinfo', zipInfo);
+            const path = elementById.value;
+            if ($library && $library[path]) {
+                currentZip.set($library[path]);
+                await emit('get-page-request', {page: 0, path: elementById.value});
+            } else if (path && $currentZip?.path !== path) {
+                currentZip.set(await setCurrentZip(path));
+                currentPageIndex = 0;
+                await emit('get-page-request', {page: 0, path: elementById.value});
+            } else {
+                throw Error("Something went wrong")
+            }
         } catch (e) {
-            console.error('error', e);
+            console.error('zipHandler', e);
+            throw e;
         }
     }
 
-    const counterHandler = async () => {
-        console.log("clicked!")
-        count = await incrementCounter();
+    function onChangePageNumber(e: Event) {
+        console.log(e);
+        const target = e.target as HTMLInputElement;
+        const value = target.valueAsNumber;
+        const upperBound = ($currentZip.length ?? 0) - 1;
+
+        if (value > upperBound) {
+            e.preventDefault();
+            currentPageIndex = upperBound;
+            target.value = String(currentPageIndex);
+        } else if (value <= 0) {
+            e.preventDefault();
+            currentPageIndex = 0;
+            target.value = String(currentPageIndex);
+        } else {
+            currentPageIndex = value;
+        }
     }
 </script>
 <div>
     <input id="file_path" value="H:\fakku\chapters\[Homunculus] Courting Étranger (COMIC Kairakuten 2017-02).zip"/>
-    <button on:click={readFileHandler}>Show image</button>
-    <button on:click={zipHandler}>Set Current Zip</button>
-    <span>{count}</span>
-    <button on:click={counterHandler}>Increment Counter</button>
-    {#if imgBase64}
-        <img src="data:image/png;base64, {imgBase64}"/>
+    <button on:click={zipHandler}>Open</button>
+    {#if $currentZip.path}
+        <input id="page_specifier" type="number" on:change={onChangePageNumber}/>
+        <button disabled="{currentPageIndex <= 0}" on:click={() => {currentPageIndex = currentPageIndex - 1;}}>
+            Previous
+        </button>
+        <button disabled="{currentPageIndex >= ($currentZip.length ?? 0) - 1}"
+                on:click={() => {currentPageIndex = currentPageIndex + 1;}}>Next
+        </button>
+        <span>{currentPageIndex}</span>
     {/if}
-    {#if zipInfo}
-        <img src="data:image/png;base64, {zipInfo.pages[0]}"/>
+    {#if $pages[currentPageIndex]}
+        <div style="display: flex; flex: 1; width: 100%;justify-content: stretch;flex-direction: row;">
+            <img on:click={nextPage} src="data:image/png;base64, {$pages[currentPageIndex].img}"/>
+        </div>
     {/if}
 </div>
 <style>
@@ -61,5 +116,11 @@
 
     button:active {
         background-color: rgba(255, 62, 0, 0.2);
+    }
+
+    img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
     }
 </style>

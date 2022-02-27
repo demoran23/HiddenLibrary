@@ -1,11 +1,10 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize)]
 pub struct ZipInfo {
     pub path: String,
     pub name: String,
     pub length: usize,
-    pub pages: Vec<String>,
 }
 
 impl ZipInfo {
@@ -14,9 +13,20 @@ impl ZipInfo {
             path: String::new(),
             name: String::new(),
             length: 0,
-            pages: Vec::new(),
         }
     }
 }
 
 unsafe impl Send for ZipInfo {}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct GetPageRequest {
+    pub page: usize,
+    pub path: String,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct GetPageResponse {
+    pub request: GetPageRequest,
+    pub contents: String,
+}
