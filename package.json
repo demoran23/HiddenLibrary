@@ -19,6 +19,7 @@
     "@tauri-apps/api": "1.0.0-rc.1",
     "@tauri-apps/cli": "1.0.0-rc.5",
     "@tsconfig/svelte": "3.0.0",
+    "localforage": "1.10.0",
     "material-icons": "1.10.7",
     "pnpm": "6.31.0",
     "svelte": "3.46.4",

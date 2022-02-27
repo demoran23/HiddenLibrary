@@ -1,14 +1,11 @@
 <script lang="ts">
     import {
         setCurrentZip
-    } from '../api/rust';
+    } from '../api/tauri';
     import {library, pages, currentZip} from "../store";
     import {emit, listen} from '@tauri-apps/api/event'
     import type {GetPageResponse, Page} from "../types";
 
-    currentZip.subscribe(value => {
-        library.update(existing => ({...existing, [value.path]: value}));
-    });
 
     listen<GetPageResponse>('get-page-response', e => {
         const page: Page = {img: e.payload.contents, req: e.payload.request};
@@ -26,7 +23,8 @@
             emit('get-page-request', {page: currentPageIndex, path: $currentZip.path});
 
         const el = document.getElementById("page_specifier") as HTMLInputElement;
-        el.value = String(currentPageIndex);
+        if (el)
+            el.value = String(currentPageIndex);
     }
 
     const nextPage = () => {
