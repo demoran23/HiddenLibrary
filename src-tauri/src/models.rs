@@ -5,6 +5,7 @@ pub struct ZipInfo {
     pub path: String,
     pub name: String,
     pub length: usize,
+    pub current_page: usize,
 }
 
 impl ZipInfo {
@@ -13,6 +14,7 @@ impl ZipInfo {
             path: String::new(),
             name: String::new(),
             length: 0,
+            current_page: 0,
         }
     }
 }

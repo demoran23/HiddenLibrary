@@ -3,24 +3,23 @@
         sendGetPageRequest,
         setCurrentZip
     } from '../api/tauri';
-    import {library, pages, currentBook} from "../store";
+    import {library, pages, currentBook, setCurrentPage} from "../store";
     import type {GetPageRequest} from "../types";
     import {difference, keys, range} from 'lodash-es';
     import PageImage from "./PageImage.svelte";
 
-    let currentPageIndex: number = 0;
-    $: currentPageIndex, onCurrentPageIndexChange()
+    $: $currentBook?.currentPage, onCurrentPageChange()
 
-    function onCurrentPageIndexChange() {
+    function onCurrentPageChange() {
         if (!$currentBook?.path)
             return;
 
         const pagePrefetchRadius = 1;
-        const minIndex = Math.max(currentPageIndex - pagePrefetchRadius, 0);
-        const maxIndex = Math.min(currentPageIndex + pagePrefetchRadius, $currentBook.length - 1);
+        const minIndex = Math.max($currentBook.currentPage - pagePrefetchRadius, 0);
+        const maxIndex = Math.min($currentBook.currentPage + pagePrefetchRadius, $currentBook.length - 1);
         const existingPages = keys($pages).map(Number).filter(isFinite);
         const pageIndexesToRequest = difference<number>(range(minIndex, maxIndex), existingPages);
-        console.log({minIndex, maxIndex, existingPages, pageIndexesToRequest});
+        // console.log({minIndex, maxIndex, existingPages, pageIndexesToRequest});
         for (const index of pageIndexesToRequest) {
             const req: GetPageRequest = {page: index, path: $currentBook.path};
             sendGetPageRequest(req);
@@ -28,30 +27,48 @@
 
         const el = document.getElementById("page_specifier") as HTMLInputElement;
         if (el)
-            el.value = String(currentPageIndex);
+            el.value = String($currentBook.currentPage);
     }
 
     const nextPage = () => {
         const elementById = document.getElementById("file_path") as HTMLInputElement;
-        const nextPageIndex = currentPageIndex + 1;
+        const nextPageIndex = Math.min($currentBook.currentPage + 1, $currentBook.length -1);
         if (!$pages[nextPageIndex])
             sendGetPageRequest({page: nextPageIndex, path: elementById.value});
-        currentPageIndex = nextPageIndex;
+        setCurrentPage(nextPageIndex);
     }
 
     const zipHandler = async () => {
         try {
             const elementById = document.getElementById("file_path") as HTMLInputElement;
             const path = elementById.value?.trim();
-            if ($library && $library[path]) {
-                currentBook.set($library[path]);
+
+            // If this is the book we're already reading, get out of here
+            // If there's no path, get out of here
+            if (!path || $pages.bookPath === path) {
+                console.log("The path is either missing, or the same as the existing book", path);
+                return;
+            }
+
+            // Clear the pages, since we're reading a new book
+            pages.set({bookPath: path});
+
+            // If it's already in the library, leave it alone and fetch the last page we were on
+            if ($library[path]) {
+                console.log(`${path} exists in the library already, using it and getting the current page`);
+
+                // Get the latest page we were reading
+                const page = $currentBook.currentPage;
+                console.log("Getting page", page);
+                await sendGetPageRequest({page: page, path});
+            }
+            // If it isn't in the library, go get it and start from the beginning
+            else {
+                console.log("This book isn't in the library yet.  Getting it.")
+                const book = await setCurrentZip(path);
+                library.update(existing => ({...existing, [path]: book}));
+                setCurrentPage(0);
                 await sendGetPageRequest({page: 0, path});
-            } else if (path && $currentBook?.path !== path) {
-                currentBook.set(await setCurrentZip(path));
-                currentPageIndex = 0;
-                await sendGetPageRequest({page: 0, path});
-            } else {
-                throw Error("Something went wrong")
             }
         } catch (e) {
             console.error('zipHandler', e);
@@ -60,39 +77,40 @@
     }
 
     function onChangePageNumber(e: Event) {
-        console.log(e);
         const target = e.target as HTMLInputElement;
         const value = target.valueAsNumber;
         const upperBound = ($currentBook.length ?? 0) - 1;
 
-        if (value > upperBound) {
+        if (value >= upperBound) {
             e.preventDefault();
-            currentPageIndex = upperBound;
-            target.value = String(currentPageIndex);
+            setCurrentPage(upperBound);
+            target.value = String($currentBook.currentPage);
         } else if (value <= 0) {
             e.preventDefault();
-            currentPageIndex = 0;
-            target.value = String(currentPageIndex);
+            setCurrentPage(0);
+            target.value = String($currentBook.currentPage);
         } else {
-            currentPageIndex = value;
+            setCurrentPage(value);
         }
     }
 </script>
 <div>
-    <input id="file_path" value="{$currentBook.path}"/>
+    <input id="file_path" value="{$currentBook?.path ?? ''}"/>
     <button on:click={zipHandler}>Open</button>
-    {#if $currentBook.path}
+    {#if $currentBook?.path}
         <input id="page_specifier" type="number" on:change={onChangePageNumber}/>
-        <button disabled={currentPageIndex <= 0} on:click={() => {currentPageIndex = currentPageIndex - 1;}}>
+        <button disabled={$currentBook.currentPage <= 0}
+                on:click={() => {setCurrentPage($currentBook.currentPage - 1);}}>
             Previous
         </button>
-        <button disabled={currentPageIndex >= ($currentBook.length ?? 0) - 1}
-                on:click={() => {currentPageIndex = currentPageIndex + 1;}}>Next
+        <button disabled={$currentBook.currentPage >= ($currentBook.length ?? 0) - 1}
+                on:click={() => {setCurrentPage($currentBook.currentPage + 1)}}>Next
         </button>
-        <span>{currentPageIndex}</span>
+        <span>{$currentBook.currentPage}</span>
     {/if}
-    <PageImage contents={$pages[currentPageIndex]?.img} onClick={nextPage} />
-`</div>
+    <PageImage contents={$pages[$currentBook?.currentPage]?.img ?? ''} onClick={nextPage}/>
+    `
+</div>
 <style>
     button {
         font-family: inherit;

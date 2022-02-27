@@ -37,6 +37,7 @@ pub async fn set_current_zip(
             path: path.to_string(),
             name: get_filename_from_path(&path).unwrap().to_string(),
             length: file_reader.entries().len(),
+            current_page: 0,
         };
         *zip_info = info;
     });

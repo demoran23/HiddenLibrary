@@ -4,7 +4,7 @@ export interface Page {
 }
 
 export interface Pages {
-    book: Book;
+    bookPath: string;
     [index: number]: Page
 }
 
