@@ -3,6 +3,6 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 export default {
   // Consult https://github.com/sveltejs/svelte-preprocess
   // for more information about preprocessors
-  preprocess: sveltePreprocess(),
+  preprocess: [sveltePreprocess(), sveltePreprocess.scss()],
   plugins: [tsconfigPaths()],
 }

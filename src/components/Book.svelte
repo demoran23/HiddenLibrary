@@ -7,7 +7,8 @@
     import type {GetPageRequest} from "../types";
     import {difference, keys, range} from 'lodash-es';
     import PageImage from "./PageImage.svelte";
-
+    import {open} from '@tauri-apps/api/dialog'
+    import Button, { Label, Icon } from '@smui/button';
     $: $currentBook?.currentPage, onCurrentPageChange()
 
     function onCurrentPageChange() {
@@ -31,17 +32,33 @@
     }
 
     const nextPage = () => {
-        const elementById = document.getElementById("file_path") as HTMLInputElement;
-        const nextPageIndex = Math.min($currentBook.currentPage + 1, $currentBook.length -1);
+        const nextPageIndex = Math.min($currentBook.currentPage + 1, $currentBook.length - 1);
         if (!$pages[nextPageIndex])
-            sendGetPageRequest({page: nextPageIndex, path: elementById.value});
+            sendGetPageRequest({page: nextPageIndex, path: $pages.bookPath});
         setCurrentPage(nextPageIndex);
     }
 
-    const zipHandler = async () => {
+    function onChangePageNumber(e: Event) {
+        const target = e.target as HTMLInputElement;
+        const value = target.valueAsNumber;
+        const upperBound = ($currentBook.length ?? 0) - 1;
+
+        if (value >= upperBound) {
+            e.preventDefault();
+            setCurrentPage(upperBound);
+            target.value = String($currentBook.currentPage);
+        } else if (value <= 0) {
+            e.preventDefault();
+            setCurrentPage(0);
+            target.value = String($currentBook.currentPage);
+        } else {
+            setCurrentPage(value);
+        }
+    }
+
+    async function openFileDialog() {
         try {
-            const elementById = document.getElementById("file_path") as HTMLInputElement;
-            const path = elementById.value?.trim();
+            const path = await open({title: "Select a zip file", filters: [{name: "zip", extensions: ["zip"]}]}) as string;
 
             // If this is the book we're already reading, get out of here
             // If there's no path, get out of here
@@ -71,32 +88,15 @@
                 await sendGetPageRequest({page: 0, path});
             }
         } catch (e) {
-            console.error('zipHandler', e);
             throw e;
-        }
-    }
-
-    function onChangePageNumber(e: Event) {
-        const target = e.target as HTMLInputElement;
-        const value = target.valueAsNumber;
-        const upperBound = ($currentBook.length ?? 0) - 1;
-
-        if (value >= upperBound) {
-            e.preventDefault();
-            setCurrentPage(upperBound);
-            target.value = String($currentBook.currentPage);
-        } else if (value <= 0) {
-            e.preventDefault();
-            setCurrentPage(0);
-            target.value = String($currentBook.currentPage);
-        } else {
-            setCurrentPage(value);
         }
     }
 </script>
 <div>
-    <input id="file_path" value="{$currentBook?.path ?? ''}"/>
-    <button on:click={zipHandler}>Open</button>
+    <Button on:click={openFileDialog}>
+<!--        <Icon class="material-icons">favorite</Icon>-->
+        <Label>Open</Label>
+    </Button>
     {#if $currentBook?.path}
         <input id="page_specifier" type="number" on:change={onChangePageNumber}/>
         <button disabled={$currentBook.currentPage <= 0}

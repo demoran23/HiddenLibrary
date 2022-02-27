@@ -1,19 +1,24 @@
 {
-  "name": "HiddenLibrary",
+  "name": "hidden.library",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "prepare": "smui-theme compile dist/smui.css -i src/theme",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "postinstall": "npm-install-peers"
   },
   "dependencies": {
+    "@material/theme": "13.0.0",
+    "@smui/button": "^6.0.0-beta.14",
     "@smui/checkbox": "^6.0.0-beta.14",
     "@smui/form-field": "^6.0.0-beta.14",
     "@smui/icon-button": "6.0.0-beta.14",
+    "@smui/textfield": "^6.0.0-beta.14",
     "@smui/top-app-bar": "6.0.0-beta.14",
     "@sveltejs/vite-plugin-svelte": "1.0.0-next.37",
     "@tauri-apps/api": "1.0.0-rc.1",
@@ -22,7 +27,8 @@
     "localforage": "1.10.0",
     "lodash-es": "4.17.21",
     "material-icons": "1.10.7",
-    "pnpm": "6.31.0",
+    "npm-install-peers": "1.2.2",
+    "smui-theme": "^6.0.0-beta.14",
     "svelte": "3.46.4",
     "svelte-check": "2.4.5",
     "svelte-preprocess": "4.10.3",
