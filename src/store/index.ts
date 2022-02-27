@@ -28,10 +28,7 @@ export function setCurrentPage(index: number) {
 
         // Protect against going out of bounds
         if (index >= 0 || index < book.length - 1)
-        {
-            console.log('changing page', { book, index })
             book.currentPage = index;
-        }
 
         return existing;
     })

@@ -8,17 +8,24 @@
 
 {#key contents}
     {#if contents}
-        <div transition:fade="{{ easing: quintInOut}}"
-             style="display: flex; flex: 1; width: 100%;justify-content: stretch;flex-direction: row;">
+        <div class="flex-container" transition:fade="{{ easing: quintInOut}}">
             <img on:click={onClick} src="data:image/png;base64, {contents}"/>
         </div>
     {/if}
 {/key}
 
 <style>
-    img {
+    .flex-container {
+        display: flex;
+        flex: 1;
+    }
+
+    .flex-container > img {
+        display: flex;
+        flex: 1;
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
     }
+
 </style>
