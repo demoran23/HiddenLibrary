@@ -9,7 +9,9 @@ specifiers:
   '@tauri-apps/api': 1.0.0-rc.1
   '@tauri-apps/cli': 1.0.0-rc.5
   '@tsconfig/svelte': 3.0.0
+  '@types/lodash-es': ^4.17.6
   localforage: 1.10.0
+  lodash-es: 4.17.21
   material-icons: 1.10.7
   pnpm: 6.31.0
   svelte: 3.46.4
@@ -30,6 +32,7 @@ dependencies:
   '@tauri-apps/cli': 1.0.0-rc.5
   '@tsconfig/svelte': 3.0.0
   localforage: 1.10.0
+  lodash-es: 4.17.21
   material-icons: 1.10.7
   pnpm: 6.31.0
   svelte: 3.46.4
@@ -39,6 +42,9 @@ dependencies:
   typescript: 4.5.5
   vite: 2.8.4
   vite-tsconfig-paths: 3.4.0_vite@2.8.4
+
+devDependencies:
+  '@types/lodash-es': 4.17.6
 
 packages:
 
@@ -419,6 +425,16 @@ packages:
   /@types/json5/0.0.29:
     resolution: {integrity: sha1-7ihweulOEdK4J7y+UnC86n8+ce4=}
     dev: false
+
+  /@types/lodash-es/4.17.6:
+    resolution: {integrity: sha512-R+zTeVUKDdfoRxpAryaQNRKk3105Rrgx2CFRClIgRGaqDTdjsm8h6IYA8ir584W3ePzkZfst5xIgDwYrlh9HLg==}
+    dependencies:
+      '@types/lodash': 4.14.179
+    dev: true
+
+  /@types/lodash/4.14.179:
+    resolution: {integrity: sha512-uwc1x90yCKqGcIOAT6DwOSuxnrAbpkdPsUOZtwrXb4D/6wZs+6qG7QnIawDuZWg0sWpxl+ltIKCaLoMlna678w==}
+    dev: true
 
   /@types/node/17.0.18:
     resolution: {integrity: sha512-eKj4f/BsN/qcculZiRSujogjvp5O/k4lOW5m35NopjZM/QwLOR075a8pJW5hD+Rtdm2DaCVPENS6KtSQnUD6BA==}
@@ -872,6 +888,10 @@ packages:
     resolution: {integrity: sha512-14/H1aX7hzBBmmh7sGPd+AOMkkIrHM3Z1PAyGgZigA1H1p5O5ANnMyWzvpAETtG68/dC4pC0ncy3+PPGzXZHPg==}
     dependencies:
       lie: 3.1.1
+    dev: false
+
+  /lodash-es/4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
     dev: false
 
   /lower-case/2.0.2:

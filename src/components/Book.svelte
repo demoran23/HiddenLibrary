@@ -4,7 +4,10 @@
     } from '../api/tauri';
     import {library, pages, currentBook} from "../store";
     import {emit, listen} from '@tauri-apps/api/event'
-    import type {GetPageResponse, Page} from "../types";
+    import type {GetPageRequest, GetPageResponse, Page} from "../types";
+    import {difference, isNumber, keys, range} from 'lodash-es';
+    import {slide} from 'svelte/transition';
+    import {quintOut} from 'svelte/easing';
 
     listen<GetPageResponse>('get-page-response', e => {
         const page: Page = {img: e.payload.contents, req: e.payload.request};
@@ -18,8 +21,16 @@
         if (!$currentBook?.path)
             return;
 
-        if (!$pages[currentPageIndex])
-            emit('get-page-request', {page: currentPageIndex, path: $currentBook.path});
+        const pagePrefetchRadius = 3;
+        const minIndex = Math.max(currentPageIndex - pagePrefetchRadius, 0);
+        const maxIndex = Math.min(currentPageIndex + pagePrefetchRadius, $currentBook.length);
+        const existingPages = keys($pages).map(Number).filter(isNumber);
+        const pageIndexesToRequest = difference<number>(range(minIndex, maxIndex), existingPages);
+        console.log({minIndex, maxIndex, existingPages, pageIndexesToRequest});
+        for (const index of pageIndexesToRequest) {
+            const req: GetPageRequest = {page: index, path: $currentBook.path};
+            emit('get-page-request', req);
+        }
 
         const el = document.getElementById("page_specifier") as HTMLInputElement;
         if (el)
@@ -87,7 +98,8 @@
         <span>{currentPageIndex}</span>
     {/if}
     {#if $pages[currentPageIndex]}
-        <div style="display: flex; flex: 1; width: 100%;justify-content: stretch;flex-direction: row;">
+        <div transition:slide="{{delay: 250, duration: 300, easing: quintOut }}"
+             style="display: flex; flex: 1; width: 100%;justify-content: stretch;flex-direction: row;">
             <img on:click={nextPage} src="data:image/png;base64, {$pages[currentPageIndex].img}"/>
         </div>
     {/if}
