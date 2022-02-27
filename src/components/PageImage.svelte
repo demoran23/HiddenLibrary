@@ -12,3 +12,11 @@
         <img on:click={onClick} src="data:image/png;base64, {contents}"/>
     </div>
 {/key}
+
+<style>
+    img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+</style>

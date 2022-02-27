@@ -3,7 +3,8 @@ import type {Writable, Unsubscriber} from 'svelte/store';
 import {setItem, getItem} from 'localforage'
 import type {Library, Pages, Book} from "../types";
 import {WindowManager} from "@tauri-apps/api/window";
-
+import {listen} from "@tauri-apps/api/event";
+import type {GetPageResponse, Page} from "../types";
 
 const currentBookDefault = {} as Book;
 export let currentBook: Writable<Book> = writable<Book>(currentBookDefault);
@@ -53,6 +54,11 @@ export const initializeStoreFromLocalStorage = async () => {
                 console.log('currentBook', { value, res})
             })
             unsubscribers.push(u);
+        });
+
+        await listen<GetPageResponse>('get-page-response', e => {
+            const page: Page = {img: e.payload.contents, req: e.payload.request};
+            pages.update(value => ({...value, [page.req.page]: page}));
         });
     } catch (e) {
         console.error(e);

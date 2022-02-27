@@ -1,17 +1,12 @@
 <script lang="ts">
     import {
+        sendGetPageRequest,
         setCurrentZip
     } from '../api/tauri';
     import {library, pages, currentBook} from "../store";
-    import {emit, listen} from '@tauri-apps/api/event'
-    import type {GetPageRequest, GetPageResponse, Page} from "../types";
-    import {difference, isNumber, keys, range} from 'lodash-es';
+    import type {GetPageRequest} from "../types";
+    import {difference, keys, range} from 'lodash-es';
     import PageImage from "./PageImage.svelte";
-
-    listen<GetPageResponse>('get-page-response', e => {
-        const page: Page = {img: e.payload.contents, req: e.payload.request};
-        pages.update(value => ({...value, [page.req.page]: page}));
-    });
 
     let currentPageIndex: number = 0;
     $: currentPageIndex, onCurrentPageIndexChange()
@@ -28,7 +23,7 @@
         console.log({minIndex, maxIndex, existingPages, pageIndexesToRequest});
         for (const index of pageIndexesToRequest) {
             const req: GetPageRequest = {page: index, path: $currentBook.path};
-            emit('get-page-request', req);
+            sendGetPageRequest(req);
         }
 
         const el = document.getElementById("page_specifier") as HTMLInputElement;
@@ -40,7 +35,7 @@
         const elementById = document.getElementById("file_path") as HTMLInputElement;
         const nextPageIndex = currentPageIndex + 1;
         if (!$pages[nextPageIndex])
-            emit('get-page-request', {page: nextPageIndex, path: elementById.value});
+            sendGetPageRequest({page: nextPageIndex, path: elementById.value});
         currentPageIndex = nextPageIndex;
     }
 
@@ -50,11 +45,11 @@
             const path = elementById.value?.trim();
             if ($library && $library[path]) {
                 currentBook.set($library[path]);
-                await emit('get-page-request', {page: 0, path});
+                await sendGetPageRequest({page: 0, path});
             } else if (path && $currentBook?.path !== path) {
                 currentBook.set(await setCurrentZip(path));
                 currentPageIndex = 0;
-                await emit('get-page-request', {page: 0, path});
+                await sendGetPageRequest({page: 0, path});
             } else {
                 throw Error("Something went wrong")
             }
@@ -88,10 +83,10 @@
     <button on:click={zipHandler}>Open</button>
     {#if $currentBook.path}
         <input id="page_specifier" type="number" on:change={onChangePageNumber}/>
-        <button disabled="{currentPageIndex <= 0}" on:click={() => {currentPageIndex = currentPageIndex - 1;}}>
+        <button disabled={currentPageIndex <= 0} on:click={() => {currentPageIndex = currentPageIndex - 1;}}>
             Previous
         </button>
-        <button disabled="{currentPageIndex >= ($currentBook.length ?? 0) - 1}"
+        <button disabled={currentPageIndex >= ($currentBook.length ?? 0) - 1}
                 on:click={() => {currentPageIndex = currentPageIndex + 1;}}>Next
         </button>
         <span>{currentPageIndex}</span>

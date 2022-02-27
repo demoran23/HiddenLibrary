@@ -22,6 +22,7 @@ export interface Book {
     length: number;
     path: string;
     name: string;
+    currentPage: number;
 }
 
 export interface Library {
