@@ -6,10 +6,7 @@
     import type {GetPageRequest} from "../types";
     import {debounce, difference, keys, range} from 'lodash-es';
     import PageImage from "./PageImage.svelte";
-    import Button, {Label, Icon} from '@smui/button';
-    import Select, {Option} from '@smui/select';
-    import Slider from '@smui/slider';
-    import FormField from '@smui/form-field';
+    import {Button, SelectItem, Select, Slider} from 'carbon-components-svelte';
 
     const pageList = range(0, $currentBook.length - 1);
 
@@ -21,6 +18,7 @@
             value: number;
         }
     }
+
     const onSliderChange = debounce((e: SmuiSliderOnChangeEvent) => {
         console.log(e);
         setCurrentPage(e.detail.value);
@@ -58,23 +56,24 @@
 
 <div>
     {#if $currentBook?.path}
-        <FormField align="end" style="display: flex;">
+        <div align="end" style="display: flex;">
             <Button disabled={$currentBook.currentPage <= 0}
                     on:click={() => {setCurrentPage($currentBook.currentPage - 1);}}>
-                <Label>Previous</Label>
+                Previous
             </Button>
-            <Label>{$currentBook.currentPage} / {($currentBook.length - 1)}</Label>
-            <Slider max={($currentBook.length - 1)} style="flex-grow: 1;" bind:value={selectedIndex} on:SMUISlider:change={onSliderChange}/>
-            <Select bind:value={selectedIndex} label="Jump To" on:SMUISelect:change={onSliderChange}>
+            <span>{$currentBook.currentPage} / {($currentBook.length - 1)}</span>
+            <Slider max={($currentBook.length - 1)} style="flex-grow: 1;" bind:value={selectedIndex}
+                    on:change={onSliderChange}/>
+            <Select bind:value={selectedIndex} label="Jump To" on:change={onSliderChange}>
                 {#each pageList as index}
-                    <Option value={index}>{index}</Option>
+                    <SelectItem value={index} text={index}/>
                 {/each}
             </Select>
             <Button disabled={$currentBook.currentPage >= ($currentBook.length ?? 0) - 1}
                     on:click={() => {setCurrentPage($currentBook.currentPage + 1)}}>
-                <Label>Next</Label>
+                <span>Next</span>
             </Button>
-        </FormField>
+        </div>
     {/if}
     <PageImage contents={$pages[$currentBook?.currentPage]?.img ?? ''} onClick={nextPage}/>
 </div>

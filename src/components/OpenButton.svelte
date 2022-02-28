@@ -1,7 +1,7 @@
 <script lang="ts">
     import {setCurrentBookPath} from "../store";
     import {open} from '@tauri-apps/api/dialog'
-    import Button, {Label} from '@smui/button';
+    import {Button} from 'carbon-components-svelte';
 
     async function openFileDialog() {
         return open({
@@ -11,7 +11,6 @@
     }
 </script>
 
-<Button on:click={openFileDialog}>
+<Button label="Open" on:click={openFileDialog}>
     <!--        <Icon class="material-icons">favorite</Icon>-->
-    <Label>Open</Label>
 </Button>

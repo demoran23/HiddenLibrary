@@ -2,32 +2,34 @@
     import Book from './components/Book.svelte'
     import {activeTab, initializeStoreFromLocalStorage} from "./store";
     import OpenButton from "./components/OpenButton.svelte";
-    import Tab, {Label} from '@smui/tab';
-    import TabBar from '@smui/tab-bar';
-    import Button from '@smui/button';
     import Browse from "./components/Browse.svelte";
+    import {Tabs, Tab, TabContent} from "carbon-components-svelte";
+    import "carbon-components-svelte/css/white.css";
 
-    let active = 'View';
+    const tabs = ['Browse', 'View'];
+    let active = 1;
     activeTab.subscribe(value => {
-        active = value;
+        active = tabs.indexOf(value);
     });
-    $: active, activeTab.set(active);
+    $: active, activeTab.set(tabs[active]);
 </script>
 
 {#await initializeStoreFromLocalStorage()}
 {:then value}
     <div>
         <OpenButton/>
-        <TabBar tabs={['Browse', 'View']} let:tab bind:active>
-            <Tab {tab}>
-                <Label>{tab}</Label>
-            </Tab>
-        </TabBar>
-        {#if active === 'View'}
-            <Book/>
-        {:else if active === 'Browse'}
-            <Browse/>
-        {/if}
+        <Tabs bind:selected={active}>
+            <Tab label="Browse" />
+            <Tab label="View" />
+            <svelte:fragment slot="content">
+                <TabContent>
+                    <Browse/>
+                </TabContent>
+                <TabContent>
+                    <Book/>
+                </TabContent>
+            </svelte:fragment>
+        </Tabs>
     </div>
 {:catch error}
     <p style="color: red">{error.message}</p>
