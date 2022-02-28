@@ -8,7 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "format": "prettier --write ./src/**/*.{js,svelte,html,ts}",
+    "lint": "eslint './src/**/*.{js,ts,svelte}'",
+    "lint:fix": "eslint --fix './src/**/*.{js,ts,svelte}'",
+    "prelint": "npm run format"
   },
   "dependencies": {
     "localforage": "1.10.0",
@@ -20,8 +24,14 @@
     "@tauri-apps/cli": "1.0.0-rc.5",
     "@tsconfig/svelte": "3.0.0",
     "@types/lodash-es": "4.17.6",
+    "@typescript-eslint/eslint-plugin": "^5.12.1",
+    "@typescript-eslint/parser": "^5.12.1",
     "carbon-components-svelte": "0.60.0",
     "carbon-icons-svelte": "10.44.4",
+    "eslint": "^8.10.0",
+    "eslint-plugin-svelte3": "^3.4.1",
+    "prettier": "^2.5.1",
+    "prettier-plugin-svelte": "^2.6.0",
     "svelte": "3.39.0",
     "svelte-check": "2.4.5",
     "svelte-preprocess": "4.10.3",

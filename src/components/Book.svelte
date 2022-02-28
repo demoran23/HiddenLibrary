@@ -7,7 +7,7 @@
     import {debounce, difference, keys, range} from 'lodash-es';
     import PageImage from "./PageImage.svelte";
     import {Button, SelectItem, Select, Slider} from 'carbon-components-svelte';
-
+ 
     const pageList = range(0, $currentBook.length - 1);
 
     let selectedIndex: number = $currentBook.currentPage;
