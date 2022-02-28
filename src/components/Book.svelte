@@ -8,20 +8,16 @@
 
   const pageList = range(0, $currentBook.length - 1);
 
-  let selectedIndex: number = $currentBook.currentPage;
+  let selectedIndex: number = $currentBook.currentPage ?? 0;
   $: $currentBook?.currentPage, onCurrentPageChange()
 
-  interface SmuiSliderOnChangeEvent {
-    detail: {
-      value: number;
-    }
-  }
- 
-  const onSliderChange = debounce((e: SmuiSliderOnChangeEvent) => {
+  const onSliderChange = debounce((e: { detail: number | null }) => {
+    if (!isFinite(e.detail)) return;
+    if (e.detail == null) return;
     console.log(e);
-    setCurrentPage(e.detail.value);
+    setCurrentPage(e.detail);
     onCurrentPageChange();
-  }, 100) as (SmuiSliderOnChangeEvent) => void;
+  }, 100);
 
   function onCurrentPageChange() {
     if (!$currentBook?.path)
@@ -54,17 +50,23 @@
 
 <div>
     {#if $currentBook?.path}
-        <div align="end" style="display: flex;">
+        <div align="end"
+             style="display: flex;">
             <Button disabled={$currentBook.currentPage <= 0}
                     on:click={() => {setCurrentPage($currentBook.currentPage - 1);}}>
                 Previous
             </Button>
             <span>{$currentBook.currentPage} / {($currentBook.length - 1)}</span>
-            <Slider max={($currentBook.length - 1)} style="flex-grow: 1;" bind:value={selectedIndex}
+            <Slider max={($currentBook.length - 1)}
+                    style="flex-grow: 1;"
+                    value={selectedIndex}
                     on:change={onSliderChange}/>
-            <Select bind:value={selectedIndex} label="Jump To" on:change={onSliderChange}>
+            <Select bind:value={selectedIndex}
+                    label="Jump To"
+                    on:change={onSliderChange}>
                 {#each pageList as index}
-                    <SelectItem value={index} text={index}/>
+                    <SelectItem value={index}
+                                text={index}/>
                 {/each}
             </Select>
             <Button disabled={$currentBook.currentPage >= ($currentBook.length ?? 0) - 1}
@@ -73,5 +75,6 @@
             </Button>
         </div>
     {/if}
-    <PageImage contents={$pages[$currentBook?.currentPage]?.img ?? ''} onClick={nextPage}/>
+    <PageImage contents={$pages[$currentBook?.currentPage] ?? ''}
+               onClick={nextPage}/>
 </div>

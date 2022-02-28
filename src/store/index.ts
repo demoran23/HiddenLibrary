@@ -3,7 +3,7 @@ import { getItem, setItem } from 'localforage'
 import type { Readable, Unsubscriber, Writable } from 'svelte/store';
 import { derived, get, writable } from 'svelte/store';
 import { sendGetPageRequest, setCurrentZip } from "../api/tauri";
-import type { Book, GetPageResponse, Library, Page, Pages } from "../types";
+import type { Book, GetPageResponse, Library, Pages } from "../types";
 
 const currentBookDefault: Book = { currentPage: 0 } as Book;
 const pagesDefault: Pages = { bookPath: undefined };
@@ -60,41 +60,37 @@ export async function setCurrentBookPath(path: string) {
   else {
     console.log("This book isn't in the library yet.  Getting it.")
     const book = await setCurrentZip(path);
-    library.update(existing => ({ ...existing, [path]: book }));
+    library.update(existing => ({ ...existing, [path]: { ...book, currentPage: 0 } }));
     setCurrentPage(0);
     await sendGetPageRequest({ page: 0, path });
   }
-  activeTab.set('View');
 
+  activeTab.set('View');
 }
 
 export const unsubscribers: Unsubscriber[] = [];
 
 export const initializeStoreFromLocalStorage = async () => {
-  try {
-    await getItem<Library>('library').then(value => {
-      library = writable(value ?? {} as Library);
-      const u = library.subscribe((value) => {
-        void setItem('library', value)
-      })
-      unsubscribers.push(u);
-    });
-    await getItem<Pages>('pages').then(value => {
-      pages = writable(value ?? pagesDefault);
-      const u = pages.subscribe((value) => {
-        void setItem('pages', value)
-      })
-      unsubscribers.push(u);
-    });
+  await getItem<Library>('library').then(value => {
+    library = writable(value ?? {} as Library);
+    const u = library.subscribe((value) => {
+      void setItem('library', value)
+    })
+    unsubscribers.push(u);
+  });
+  await getItem<Pages>('pages').then(value => {
+    pages = writable(value ?? pagesDefault);
+    const u = pages.subscribe((value) => {
+      void setItem('pages', value)
+    })
+    unsubscribers.push(u);
+  });
 
-    await listen<GetPageResponse>('get-page-response', e => {
-      const page: Page = { img: e.payload.contents, req: e.payload.request };
-      pages.update(value => ({ ...value, [page.req.page]: page, bookPath: page.req.path }));
-    });
+  await listen<GetPageResponse>('get-page-response', e => {
+    console.log('get-page-response', e);
+    const page = e.payload.contents;
+    pages.update(value => ({ ...value, [e.payload.request.page]: page, bookPath: e.payload.request.path }));
+  });
 
-    currentBook = getCurrentBook();
-  } catch (e) {
-    console.error(e);
-    throw e;
-  }
+  currentBook = getCurrentBook();
 }
