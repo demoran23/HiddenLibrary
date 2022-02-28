@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@material/theme": "13.0.0",
+    "@smui/common": "6.0.0-beta.14",
+    "@smui/select": "6.0.0-beta.14",
     "@smui/button": "^6.0.0-beta.14",
     "@smui/checkbox": "^6.0.0-beta.14",
     "@smui/form-field": "^6.0.0-beta.14",
@@ -29,7 +31,6 @@
     "material-icons": "1.10.7",
     "npm-install-peers": "1.2.2",
     "smui-theme": "^6.0.0-beta.14",
-    "svelte": "3.46.4",
     "svelte-check": "2.4.5",
     "svelte-preprocess": "4.10.3",
     "tslib": "2.3.1",
@@ -38,6 +39,7 @@
     "vite-tsconfig-paths": "^3.4.0"
   },
   "devDependencies": {
+    "svelte": "3.39.0",
     "@types/lodash-es": "^4.17.6"
   }
 }

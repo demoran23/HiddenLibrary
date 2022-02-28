@@ -9,6 +9,10 @@
     import PageImage from "./PageImage.svelte";
     import {open} from '@tauri-apps/api/dialog'
     import Button, { Label, Icon } from '@smui/button';
+    import Select, { Option } from '@smui/select';
+
+    const pageList =  range(0, $currentBook.length - 1);
+
     $: $currentBook?.currentPage, onCurrentPageChange()
 
     function onCurrentPageChange() {
@@ -91,6 +95,10 @@
             throw e;
         }
     }
+
+    function onSelectPage(e: Event) {
+
+    }
 </script>
 <div>
     <Button on:click={openFileDialog}>
@@ -98,6 +106,11 @@
         <Label>Open</Label>
     </Button>
     {#if $currentBook?.path}
+        <Select on:select={onSelectPage} label="Jump To">
+            {#each pageList as index}
+                <Option value={index}>{index}</Option>
+            {/each}
+        </Select>
         <input id="page_specifier" type="number" on:change={onChangePageNumber}/>
         <button disabled={$currentBook.currentPage <= 0}
                 on:click={() => {setCurrentPage($currentBook.currentPage - 1);}}>
