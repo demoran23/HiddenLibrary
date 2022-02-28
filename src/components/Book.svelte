@@ -1,57 +1,55 @@
 <script lang="ts">
-    import {
-        sendGetPageRequest,
-    } from '../api/tauri';
-    import {pages, currentBook, setCurrentPage} from "../store";
-    import type {GetPageRequest} from "../types";
-    import {debounce, difference, keys, range} from 'lodash-es';
-    import PageImage from "./PageImage.svelte";
-    import {Button, SelectItem, Select, Slider} from 'carbon-components-svelte';
+  import { Button, Select, SelectItem, Slider } from 'carbon-components-svelte';
+  import { debounce, difference, keys, range } from 'lodash-es';
+  import { sendGetPageRequest, } from '../api/tauri';
+  import { currentBook, pages, setCurrentPage } from "../store";
+  import type { GetPageRequest } from "../types";
+  import PageImage from "./PageImage.svelte";
+
+  const pageList = range(0, $currentBook.length - 1);
+
+  let selectedIndex: number = $currentBook.currentPage;
+  $: $currentBook?.currentPage, onCurrentPageChange()
+
+  interface SmuiSliderOnChangeEvent {
+    detail: {
+      value: number;
+    }
+  }
  
-    const pageList = range(0, $currentBook.length - 1);
+  const onSliderChange = debounce((e: SmuiSliderOnChangeEvent) => {
+    console.log(e);
+    setCurrentPage(e.detail.value);
+    onCurrentPageChange();
+  }, 100) as (SmuiSliderOnChangeEvent) => void;
 
-    let selectedIndex: number = $currentBook.currentPage;
-    $: $currentBook?.currentPage, onCurrentPageChange()
+  function onCurrentPageChange() {
+    if (!$currentBook?.path)
+      return;
 
-    interface SmuiSliderOnChangeEvent {
-        detail: {
-            value: number;
-        }
+    selectedIndex = $currentBook.currentPage;
+    const pagePrefetchRadius = 1;
+    const minIndex = Math.max($currentBook.currentPage - pagePrefetchRadius, 0);
+    const maxIndex = Math.min($currentBook.currentPage + pagePrefetchRadius, $currentBook.length - 1);
+    const existingPages = keys($pages).map(Number).filter(isFinite);
+    const pageIndexesToRequest = difference<number>(range(minIndex, maxIndex), existingPages);
+    console.log({ minIndex, maxIndex, existingPages, pageIndexesToRequest });
+    for (const index of pageIndexesToRequest) {
+      const req: GetPageRequest = { page: index, path: $currentBook.path };
+      void sendGetPageRequest(req);
     }
 
-    const onSliderChange = debounce((e: SmuiSliderOnChangeEvent) => {
-        console.log(e);
-        setCurrentPage(e.detail.value);
-        onCurrentPageChange();
-    }, 100) as (SmuiSliderOnChangeEvent) => void;
+    const el = document.getElementById("page_specifier") as HTMLInputElement;
+    if (el)
+      el.value = String($currentBook.currentPage);
+  }
 
-    function onCurrentPageChange() {
-        if (!$currentBook?.path)
-            return;
-
-        selectedIndex = $currentBook.currentPage;
-        const pagePrefetchRadius = 1;
-        const minIndex = Math.max($currentBook.currentPage - pagePrefetchRadius, 0);
-        const maxIndex = Math.min($currentBook.currentPage + pagePrefetchRadius, $currentBook.length - 1);
-        const existingPages = keys($pages).map(Number).filter(isFinite);
-        const pageIndexesToRequest = difference<number>(range(minIndex, maxIndex), existingPages);
-        console.log({minIndex, maxIndex, existingPages, pageIndexesToRequest});
-        for (const index of pageIndexesToRequest) {
-            const req: GetPageRequest = {page: index, path: $currentBook.path};
-            sendGetPageRequest(req);
-        }
-
-        const el = document.getElementById("page_specifier") as HTMLInputElement;
-        if (el)
-            el.value = String($currentBook.currentPage);
-    }
-
-    const nextPage = () => {
-        const nextPageIndex = Math.min($currentBook.currentPage + 1, $currentBook.length - 1);
-        if (!$pages[nextPageIndex])
-            sendGetPageRequest({page: nextPageIndex, path: $pages.bookPath});
-        setCurrentPage(nextPageIndex);
-    }
+  const nextPage = () => {
+    const nextPageIndex = Math.min($currentBook.currentPage + 1, $currentBook.length - 1);
+    if (!$pages[nextPageIndex])
+      void sendGetPageRequest({ page: nextPageIndex, path: $pages.bookPath });
+    setCurrentPage(nextPageIndex);
+  }
 </script>
 
 <div>
