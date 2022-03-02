@@ -14,11 +14,9 @@
     "lint:fix": "eslint --fix './src/**/*.{js,ts,svelte}'",
     "prelint": "npm run format"
   },
-  "dependencies": {
-    "localforage": "1.10.0",
-    "lodash-es": "4.17.21"
-  },
   "devDependencies": {
+    "localforage": "1.10.0",
+    "lodash-es": "4.17.21",
     "@sveltejs/vite-plugin-svelte": "1.0.0-next.37",
     "@tauri-apps/api": "1.0.0-rc.1",
     "@tauri-apps/cli": "1.0.0-rc.5",
@@ -26,6 +24,8 @@
     "@types/lodash-es": "4.17.6",
     "@typescript-eslint/eslint-plugin": "^5.12.1",
     "@typescript-eslint/parser": "^5.12.1",
+    "carbon-components": "10.47.0",
+    "carbon-components-10.47": "npm:carbon-components@10.47",
     "carbon-components-svelte": "0.60.0",
     "carbon-icons-svelte": "10.44.4",
     "eslint": "^8.10.0",
